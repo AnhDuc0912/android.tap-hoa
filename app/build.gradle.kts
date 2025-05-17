@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp3)
+    implementation(libs.glide)
 
     // Các dependencies khác
     testImplementation(libs.junit)

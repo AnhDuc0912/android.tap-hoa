@@ -103,13 +103,21 @@ public class DashboardFragment extends Fragment {
                     @Override
                     public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
                         requireActivity().runOnUiThread(() -> {
-                            if (response.isSuccessful()) {
-                                Toast.makeText(getContext(), "Gửi ảnh thành công!", Toast.LENGTH_SHORT).show();
+                            if (response.isSuccessful() && response.body() != null) {
+                                try {
+                                    String jsonResponse = response.body().string(); // đọc JSON dạng String
+                                    Log.d("API_RESPONSE", jsonResponse); // log JSON
+                                    Toast.makeText(getContext(), "Gửi ảnh thành công!", Toast.LENGTH_SHORT).show();
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    Toast.makeText(getContext(), "Lỗi đọc dữ liệu trả về", Toast.LENGTH_SHORT).show();
+                                }
                             } else {
                                 Toast.makeText(getContext(), "Lỗi gửi ảnh: " + response.code(), Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
+
 
                     @Override
                     public void onFailure(Call<ResponseBody> call, Throwable t) {

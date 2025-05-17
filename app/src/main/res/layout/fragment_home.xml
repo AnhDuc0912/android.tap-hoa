@@ -7,14 +7,13 @@
     android:background="@color/white"
     tools:context=".ui.home.HomeFragment">
 
-    <!-- Status Bar (Simulated) -->
+    <!-- Status Bar (Giả lập) -->
     <LinearLayout
         android:id="@+id/status_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintTop_toTopOf="parent">
-    </LinearLayout>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Search Bar -->
     <androidx.cardview.widget.CardView
@@ -61,182 +60,24 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Match Cards and News Feed Container -->
+    <!-- Nội dung sản phẩm -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/main_scroll"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:fillViewport="true"
+        android:scrollbars="none"
         app:layout_constraintTop_toBottomOf="@id/search_bar"
-        android:scrollbars="none">
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
             android:id="@+id/content_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="16dp">
+            android:padding="16dp">
 
-            <!-- Match Cards -->
-                <HorizontalScrollView
-                android:id="@+id/match_cards_container"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingVertical="8dp"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="8dp">
-                    <!-- Các card item ở đây -->
-                </LinearLayout>
-            </HorizontalScrollView>
-
-            <!-- News Feed -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <!-- News Item -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    app:cardCornerRadius="0dp"
-                    app:cardElevation="0dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                        <ImageView
-                            android:layout_width="match_parent"
-                            android:layout_height="300dp"
-                            android:scaleType="centerCrop"
-                            android:src="@drawable/soccer_player" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:padding="16dp"
-                            android:text="Chelsea khao khát một 'Van Dijk' trong đội hình"
-                            android:textColor="@color/black"
-                            android:background="#FFF"
-                            android:textSize="24sp"
-                            android:textStyle="bold" />
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:padding="16dp"
-                            android:background="#FFF">
-
-                            <ImageView
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:src="@drawable/ic_news_source" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
-                                android:text="Bongda.com.vn · 1 ngày"
-                                android:textColor="@color/gray"
-                                android:textSize="14sp" />
-
-                            <View
-                                android:layout_width="0dp"
-                                android:layout_height="1dp"
-                                android:layout_weight="1" />
-
-                            <ImageView
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:src="@drawable/ic_favorite_border" />
-
-                            <ImageView
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:layout_marginStart="16dp"
-                                android:src="@drawable/ic_more_vert" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
-
-                <!-- ... Thêm nhiều news item tương tự nếu cần -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    app:cardCornerRadius="0dp"
-                    app:cardElevation="0dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                        <ImageView
-                            android:layout_width="match_parent"
-                            android:layout_height="300dp"
-                            android:scaleType="centerCrop"
-                            android:src="@drawable/soccer_player" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="#FFF"
-                            android:padding="16dp"
-                            android:text="Chelsea khao khát một 'Van Dijk' trong đội hình"
-                            android:textColor="@color/black"
-                            android:textSize="24sp"
-                            android:textStyle="bold" />
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="#FFF"
-                            android:orientation="horizontal"
-                            android:padding="16dp">
-
-                            <ImageView
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:src="@drawable/ic_news_source" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
-                                android:text="Bongda.com.vn · 1 ngày"
-                                android:textColor="@color/gray"
-                                android:textSize="14sp" />
-
-                            <View
-                                android:layout_width="0dp"
-                                android:layout_height="1dp"
-                                android:layout_weight="1" />
-
-                            <ImageView
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:src="@drawable/ic_favorite_border" />
-
-                            <ImageView
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:layout_marginStart="16dp"
-                                android:src="@drawable/ic_more_vert" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
-            </LinearLayout>
+            <!-- Thêm nhiều sản phẩm khác nếu cần -->
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

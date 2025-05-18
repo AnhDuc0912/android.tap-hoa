@@ -1,5 +1,6 @@
 package com.example.hango.ui.cart;
 
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -9,7 +10,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
-
+import android.graphics.Bitmap;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -29,6 +40,11 @@ import com.example.hango.api.ResponseWrapper;
 import com.example.hango.api.RetrofitClient;
 import com.example.hango.products.Category;
 import com.example.hango.products.Product;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -41,11 +57,14 @@ public class CartFragment extends Fragment {
     private ImageView addProductButton;
     private NestedScrollView nestedScrollView;
     private List<Product> productList = new ArrayList<>();
+    private List<Category> categories = new ArrayList<>();
+
     private int offset = 0;
     private final int PAGE_SIZE = 5;
     private boolean isLoading = false;
     private Handler handler; // Handler để trì hoãn tải ảnh
     private List<Call<ProductsResponse>> activeCalls = new ArrayList<>(); // Theo dõi các Retrofit Call
+    private Bitmap selectedImageBitmap = null;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -275,13 +294,13 @@ public class CartFragment extends Fragment {
         EditText etName = dialogView.findViewById(R.id.etProductName);
         EditText etPrice = dialogView.findViewById(R.id.etPrice);
         Button btnChooseImage = dialogView.findViewById(R.id.btnChooseImage);
-        LinearLayout featuresList = dialogView.findViewById(R.id.llFeaturesList);
         ImageView productImage = dialogView.findViewById(R.id.productImage);
         Spinner spinnerCategory = dialogView.findViewById(R.id.spinnerCategory);
 
-        List<String> features = new ArrayList<>();
+        // Biến giữ ảnh đã chọn
+        final Bitmap[] selectedImageBitmap = {null};
 
-        // Gọi API để lấy danh sách danh mục
+        // Gọi API lấy danh mục và thiết lập Spinner
         ApiService apiService = RetrofitClient.getApiService();
         Call<CatResponse> call = apiService.getCategories();
         call.enqueue(new Callback<CatResponse>() {
@@ -292,12 +311,9 @@ public class CartFragment extends Fragment {
                 if (response.isSuccessful() && response.body() != null) {
                     List<Category> categories = response.body().getCategories();
                     if (categories != null && !categories.isEmpty()) {
-                        // Thiết lập Spinner với danh sách danh mục
                         ArrayAdapter<Category> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, categories);
                         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                         spinnerCategory.setAdapter(adapter);
-
-                        // Thiết lập giá trị mặc định
                         spinnerCategory.setSelection(0);
                     } else {
                         Toast.makeText(requireContext(), "Không có danh mục để hiển thị", Toast.LENGTH_SHORT).show();
@@ -314,11 +330,13 @@ public class CartFragment extends Fragment {
             }
         });
 
+        // Xử lý nút chọn ảnh
         btnChooseImage.setOnClickListener(v -> {
             if (getActivity() instanceof MainActivity) {
                 ((MainActivity) getActivity()).openCameraWithCallback(imageBitmap -> {
                     if (productImage != null && imageBitmap != null) {
                         productImage.setImageBitmap(imageBitmap);
+                        selectedImageBitmap[0] = imageBitmap;
                     } else {
                         Log.e("AddProductDialog", "ImageView hoặc ảnh chụp bị null");
                     }
@@ -329,29 +347,91 @@ public class CartFragment extends Fragment {
         AlertDialog dialog = new AlertDialog.Builder(requireContext())
                 .setTitle("Thêm sản phẩm mới")
                 .setView(dialogView)
-                .setPositiveButton("Thêm", (d, which) -> {
+                .setPositiveButton("Thêm", (dialogInterface, which) -> {
                     String name = etName.getText().toString().trim();
-                    String price = etPrice.getText().toString().trim();
+                    String priceStr = etPrice.getText().toString().trim();
                     Category selectedCategory = (Category) spinnerCategory.getSelectedItem();
-                    if (isAdded()) {
-                        if (selectedCategory != null) {
-                            Toast.makeText(requireContext(), "Đã thêm sản phẩm: " + name + " (Danh mục: " + selectedCategory.getName() + ")", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(requireContext(), "Đã thêm sản phẩm: " + name, Toast.LENGTH_SHORT).show();
-                        }
+                    String unit = "cái";  // Nếu có ô nhập đơn vị, hoặc gán mặc định
+
+                    if (name.isEmpty()) {
+                        Toast.makeText(requireContext(), "Vui lòng nhập tên sản phẩm", Toast.LENGTH_SHORT).show();
+                        return;
                     }
+
+                    if (priceStr.isEmpty() || !priceStr.matches("\\d+(\\.\\d+)?")) {
+                        Toast.makeText(requireContext(), "Giá sản phẩm không hợp lệ", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    if (selectedCategory == null) {
+                        Toast.makeText(requireContext(), "Vui lòng chọn danh mục", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    if (selectedImageBitmap[0] == null) {
+                        Toast.makeText(requireContext(), "Vui lòng chọn ảnh sản phẩm", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    int categoryId = selectedCategory.getId();
+
+                    File imageFile = createTempFileFromBitmap(selectedImageBitmap[0]);
+                    if (imageFile == null) {
+                        Toast.makeText(requireContext(), "Lỗi tạo file ảnh", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    RequestBody requestName = RequestBody.create(name, okhttp3.MediaType.parse("text/plain"));
+                    RequestBody requestPrice = RequestBody.create(priceStr, okhttp3.MediaType.parse("text/plain"));
+                    RequestBody requestCategoryId = RequestBody.create(String.valueOf(categoryId), okhttp3.MediaType.parse("text/plain"));
+                    RequestBody requestUnit = RequestBody.create(unit, okhttp3.MediaType.parse("text/plain"));
+
+                    RequestBody requestFile = RequestBody.create(imageFile, okhttp3.MediaType.parse("image/jpeg"));
+                    MultipartBody.Part imagePart = MultipartBody.Part.createFormData("image", imageFile.getName(), requestFile);
+
+                    apiService.uploadProduct(imagePart, requestName, requestPrice, requestCategoryId, requestUnit)
+                            .enqueue(new retrofit2.Callback<ResponseBody>() {
+                                @Override
+                                public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
+                                    if (response.isSuccessful()) {
+                                        Toast.makeText(requireContext(), "Thêm sản phẩm thành công", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        Toast.makeText(requireContext(), "Lỗi server: " + response.message(), Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                                    Toast.makeText(requireContext(), "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                                }
+                            });
                 })
-                .setNegativeButton("Hủy", (d, which) -> d.dismiss())
+                .setNegativeButton("Hủy", (dialogInterface, which) -> dialogInterface.dismiss())
                 .create();
 
         dialog.show();
     }
 
-    private void addFeatureChip(String feature, LinearLayout container) {
-        TextView chip = new TextView(requireContext());
-        chip.setText(feature);
-        chip.setPadding(16, 8, 16, 8);
-        chip.setBackgroundResource(R.drawable.bg_chip);
-        container.addView(chip);
+    private File createTempFileFromBitmap(Bitmap bitmap) {
+        try {
+            File file = File.createTempFile("product_image_", ".jpg", requireContext().getCacheDir());
+            FileOutputStream out = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
+            out.flush();
+            out.close();
+            return file;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private int getCategoryIdFromName(String categoryName) {
+        for (Category category : categories) {
+            if (category.getName().equalsIgnoreCase(categoryName)) {
+                return category.getId();
+            }
+        }
+        return -1; // nếu không tìm thấy
     }
 }

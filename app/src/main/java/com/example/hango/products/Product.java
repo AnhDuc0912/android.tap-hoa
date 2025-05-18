@@ -50,5 +50,13 @@ public class Product {
     public float getSimilarity() { return similarity; }
     public String getPrice() { return price; }
     // ... Thêm các getter khác nếu cần
+
+    public void setProductName(String productName) { this.productName = productName; }
+    public void setPrice(String price) { this.price = price; }
+    public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
+    public void setCategoryId(int categoryId) { this.categoryId = categoryId; }
+    public void setImagePath(String imagePath) { this.imagePath = imagePath; }
+    public void setLabel(String label) { this.label = label; }
+// ... tương tự cho các trường khác nếu cần
 }
 

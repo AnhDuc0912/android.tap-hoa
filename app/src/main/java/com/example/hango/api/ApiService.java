@@ -1,7 +1,11 @@
 package com.example.hango.api;
+import com.example.hango.products.Product;
+
 import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
@@ -29,5 +33,14 @@ public interface ApiService {
     @GET("api/get-categories")
     Call<CatResponse> getCategories();
 
+    @Multipart
+    @POST("/api/add-product")
+    Call<ResponseBody> uploadProduct(
+            @Part MultipartBody.Part image,
+            @Part("product_name") RequestBody productName,
+            @Part("price") RequestBody price,
+            @Part("category_id") RequestBody categoryId,
+            @Part("unit") RequestBody unit
+    );
 }
 

@@ -13,7 +13,7 @@ import androidx.fragment.app.Fragment;
 import com.bumptech.glide.Glide;
 import com.example.hango.R;
 import com.example.hango.api.RetrofitClient;
-import com.example.hango.products.Product;
+import com.example.hango.entitys.Product;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 

@@ -1,6 +1,6 @@
 package com.example.hango.api;
 
-import com.example.hango.products.Product;
+import com.example.hango.entitys.Product;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;

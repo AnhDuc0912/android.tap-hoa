@@ -23,8 +23,11 @@ import com.bumptech.glide.request.target.Target;
 import com.example.hango.MainActivity;
 import com.example.hango.R;
 import com.example.hango.api.ApiService;
+import com.example.hango.api.CatResponse;
 import com.example.hango.api.ProductsResponse;
+import com.example.hango.api.ResponseWrapper;
 import com.example.hango.api.RetrofitClient;
+import com.example.hango.products.Category;
 import com.example.hango.products.Product;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -272,19 +275,42 @@ public class CartFragment extends Fragment {
         EditText etName = dialogView.findViewById(R.id.etProductName);
         EditText etPrice = dialogView.findViewById(R.id.etPrice);
         Button btnChooseImage = dialogView.findViewById(R.id.btnChooseImage);
-        EditText etFeature = dialogView.findViewById(R.id.etFeature);
-        ImageButton btnAddFeat = dialogView.findViewById(R.id.btnAddFeature);
         LinearLayout featuresList = dialogView.findViewById(R.id.llFeaturesList);
-        ImageView productImage = dialogView.findViewById(R.id.productImage); // ✅ Lấy từ dialogView
+        ImageView productImage = dialogView.findViewById(R.id.productImage);
+        Spinner spinnerCategory = dialogView.findViewById(R.id.spinnerCategory);
 
         List<String> features = new ArrayList<>();
 
-        btnAddFeat.setOnClickListener(v -> {
-            String feature = etFeature.getText().toString().trim();
-            if (!feature.isEmpty()) {
-                features.add(feature);
-                addFeatureChip(feature, featuresList);
-                etFeature.setText("");
+        // Gọi API để lấy danh sách danh mục
+        ApiService apiService = RetrofitClient.getApiService();
+        Call<CatResponse> call = apiService.getCategories();
+        call.enqueue(new Callback<CatResponse>() {
+            @Override
+            public void onResponse(Call<CatResponse> call, Response<CatResponse> response) {
+                if (!isAdded()) return;
+
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Category> categories = response.body().getCategories();
+                    if (categories != null && !categories.isEmpty()) {
+                        // Thiết lập Spinner với danh sách danh mục
+                        ArrayAdapter<Category> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, categories);
+                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                        spinnerCategory.setAdapter(adapter);
+
+                        // Thiết lập giá trị mặc định
+                        spinnerCategory.setSelection(0);
+                    } else {
+                        Toast.makeText(requireContext(), "Không có danh mục để hiển thị", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(requireContext(), "Không thể tải danh mục", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<CatResponse> call, Throwable t) {
+                if (!isAdded()) return;
+                Toast.makeText(requireContext(), "Lỗi: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -306,7 +332,14 @@ public class CartFragment extends Fragment {
                 .setPositiveButton("Thêm", (d, which) -> {
                     String name = etName.getText().toString().trim();
                     String price = etPrice.getText().toString().trim();
-                    Toast.makeText(requireContext(), "Đã thêm sản phẩm!", Toast.LENGTH_SHORT).show();
+                    Category selectedCategory = (Category) spinnerCategory.getSelectedItem();
+                    if (isAdded()) {
+                        if (selectedCategory != null) {
+                            Toast.makeText(requireContext(), "Đã thêm sản phẩm: " + name + " (Danh mục: " + selectedCategory.getName() + ")", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(requireContext(), "Đã thêm sản phẩm: " + name, Toast.LENGTH_SHORT).show();
+                        }
+                    }
                 })
                 .setNegativeButton("Hủy", (d, which) -> d.dismiss())
                 .create();

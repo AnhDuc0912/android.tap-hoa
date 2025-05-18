@@ -3,4 +3,11 @@
     <string name="title_home">Trang chủ</string>
     <string name="title_dashboard">Trang chủ</string>
     <string name="title_cart">Quản lý</string>
+
+    <string-array name="category_options">
+        <item>Danh mục 1</item>
+        <item>Danh mục 2</item>
+        <item>Danh mục 3</item>
+        <item>Khác</item>
+    </string-array>
 </resources>

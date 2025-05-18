@@ -15,7 +15,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Product Name"
+            android:text="Tên sản phẩm"
             android:textSize="14sp"
             android:paddingTop="8dp"/>
         <EditText
@@ -29,7 +29,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Price"
+            android:text="Giá"
             android:textSize="14sp"
             android:paddingTop="8dp"/>
         <LinearLayout
@@ -56,14 +56,14 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Product Image"
+            android:text="Ảnh đại diện"
             android:textSize="14sp"
             android:paddingTop="8dp"/>
         <Button
             android:id="@+id/btnChooseImage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Choose File"/>
+            android:text="Chụp ảnh"/>
 
         <ImageView
             android:id="@+id/productImage"
@@ -71,42 +71,22 @@
             android:layout_height="200dp"
             android:scaleType="centerCrop" />
 
-        <!-- Features -->
+        <!-- danh mục -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Features"
+            android:text="Danh mục"
             android:textSize="14sp"
             android:paddingTop="8dp"/>
 
-        <!-- Hàng nhập feature: EditText + nút + -->
-        <LinearLayout
-            android:id="@+id/llFeatureInputRow"
+        <Spinner
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingTop="4dp">
-
-            <EditText
-                android:id="@+id/etFeature"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="40dp"
-                android:background="#F1F3F4"
-                android:paddingHorizontal="8dp"
-                android:hint="Add feature" />
-
-            <ImageButton
-                android:id="@+id/btnAddFeature"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_green_plus"
-                android:contentDescription="Add feature"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:layout_marginStart="8dp"/>
-        </LinearLayout>
-
+            android:id="@+id/spinnerCategory"
+            android:textSize="14sp"
+            android:paddingTop="8dp"
+            android:background="@drawable/card_border"
+            android:entries="@array/category_options" />
         <!-- Container dọc để hiển thị các chip bên dưới -->
         <LinearLayout
             android:id="@+id/llFeaturesList"

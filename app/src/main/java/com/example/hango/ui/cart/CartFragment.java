@@ -28,8 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CartFragment extends Fragment {
-
-    private ImageView openCameraButton;
     private ImageView addProductButton;
 
     @Override
@@ -39,11 +37,7 @@ public class CartFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_cart, container, false);
 
         // Lấy reference cho các nút
-        openCameraButton = view.findViewById(R.id.openCameraButton);
         addProductButton = view.findViewById(R.id.addProductButton);
-
-        // Đặt sự kiện click cho nút mở camera
-        openCameraButton.setOnClickListener(v -> openCamera());
 
         // Đặt sự kiện click cho nút thêm sản phẩm
         addProductButton.setOnClickListener(v -> showAddProductDialog());
@@ -101,42 +95,5 @@ public class CartFragment extends Fragment {
                 .create();
 
         dialog.show();
-    }
-
-
-    private final ActivityResultLauncher<String> cameraPermissionLauncher = registerForActivityResult(
-            new ActivityResultContracts.RequestPermission(),
-            isGranted -> {
-                if (isGranted) {
-                    // Nếu quyền được cấp, mở camera
-                    openCamera();
-                } else {
-                    // Nếu quyền không được cấp, hiển thị thông báo
-                    Toast.makeText(requireContext(), "Camera permission is required", Toast.LENGTH_SHORT).show();
-                }
-            }
-    );
-
-    // Khai báo launcher để mở camera
-    private final ActivityResultLauncher<Intent> cameraActivityLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == AppCompatActivity.RESULT_OK) {
-                    // Xử lý kết quả từ camera (nếu cần)
-                    Toast.makeText(requireContext(), "Camera photo captured!", Toast.LENGTH_SHORT).show();
-                }
-            }
-    );
-
-    private void openCamera() {
-        // Kiểm tra quyền truy cập camera
-        if (ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            // Nếu đã cấp quyền, mở camera
-            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            cameraActivityLauncher.launch(intent);
-        } else {
-            // Nếu chưa cấp quyền, yêu cầu cấp quyền
-            cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA);
-        }
     }
 }

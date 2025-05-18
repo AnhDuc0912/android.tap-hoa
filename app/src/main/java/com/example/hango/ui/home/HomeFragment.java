@@ -122,7 +122,7 @@ public class HomeFragment extends Fragment {
 
         LayoutInflater inflater = LayoutInflater.from(getContext());
 
-        String baseImageUrl = "http://192.168.1.249:5000/static/";
+        String baseImageUrl = RetrofitClient.getBaseUrl() + "/static/";
 
         for (Product product : products) {
             View productView = inflater.inflate(R.layout.product_item, content_container, false);

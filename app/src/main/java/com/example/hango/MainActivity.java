@@ -44,11 +44,13 @@ public class MainActivity extends AppCompatActivity {
             int id = item.getItemId();
             if (id == R.id.navigation_dashboard) {
                 loadFragment(new DashboardFragment());
+                Toast.makeText(this, "Trang chủ", Toast.LENGTH_SHORT).show();
+
                 return true;
-            } else if (id == R.id.navigation_home) {
-                loadFragment(new HomeFragment());
-                return true;
-            } else if (id == R.id.navigation_cart) {
+            }
+//            Trang quản lý
+            else if (id == R.id.navigation_cart) {
+                Toast.makeText(MainActivity.this, "Trang quản lý", Toast.LENGTH_SHORT).show();
                 loadFragment(new CartFragment());
                 return true;
             }

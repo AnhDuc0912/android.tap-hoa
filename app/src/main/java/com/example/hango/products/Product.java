@@ -21,6 +21,9 @@ public class Product {
     @SerializedName("category_id")
     private int categoryId;
 
+    @SerializedName("label")
+    private String label;
+
     @SerializedName("category_name")
     private String categoryName;
 
@@ -43,6 +46,7 @@ public class Product {
     public String getProductName() { return productName; }
     public String getImagePath() { return imagePath; }
     public String getCategoryName() { return categoryName; }
+    public String getLabel() { return label; }
     public float getSimilarity() { return similarity; }
     public String getPrice() { return price; }
     // ... Thêm các getter khác nếu cần

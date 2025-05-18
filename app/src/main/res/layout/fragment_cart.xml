@@ -52,14 +52,6 @@
                 android:background="@android:color/transparent" />
 
             <ImageView
-                android:id="@+id/openCameraButton"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginEnd="12dp"
-                android:onClick="openCamera"
-                android:src="@drawable/ic_lens" />
-
-            <ImageView
                 android:id="@+id/addProductButton"
                 android:layout_width="32dp"
                 android:layout_height="32dp"

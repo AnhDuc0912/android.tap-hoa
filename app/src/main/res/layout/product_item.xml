@@ -32,6 +32,15 @@
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/categoryName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="12dp"
+            android:paddingBottom="12dp"
+            android:textSize="16sp"
+            android:textColor="@color/gray" />
+
+        <TextView
             android:id="@+id/productPrice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -65,6 +65,12 @@
             android:layout_height="wrap_content"
             android:text="Choose File"/>
 
+        <ImageView
+            android:id="@+id/productImage"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:scaleType="centerCrop" />
+
         <!-- Features -->
         <TextView
             android:layout_width="match_parent"

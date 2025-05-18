@@ -19,3 +19,4 @@ public class ResponseWrapper {
     public List<Product> getSimilarProducts() { return similarProducts; }
     public int getTotalResults() { return totalResults; }
 }
+

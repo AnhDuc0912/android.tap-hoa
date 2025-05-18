@@ -22,5 +22,8 @@ public interface ApiService {
 
     @GET("api/get-products")
     Call<ProductsResponse> loadMoreProducts(@Query("offset") int offset);
+
+    @POST("api/load-more-similar")
+    Call<ResponseWrapper> loadMoreSimilarProducts(@Query("offset") int offset);
 }
 

@@ -2,6 +2,8 @@ package com.example.hango.ui.cart;
 
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +13,7 @@ import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -33,34 +36,88 @@ import java.util.List;
 public class CartFragment extends Fragment {
 
     private ImageView addProductButton;
+    private NestedScrollView nestedScrollView;
+    private List<Product> productList = new ArrayList<>();
+    private int offset = 0;
+    private final int PAGE_SIZE = 5;
+    private boolean isLoading = false;
+    private Handler handler; // Handler để trì hoãn tải ảnh
+    private List<Call<ProductsResponse>> activeCalls = new ArrayList<>(); // Theo dõi các Retrofit Call
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        handler = new Handler(Looper.getMainLooper()); // Khởi tạo Handler
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_cart, container, false);
 
-        // Call the API to fetch products
-        fetchProducts(view);
+        // Tìm NestedScrollView
+        nestedScrollView = view.findViewById(R.id.main_scroll);
+        if (nestedScrollView == null) {
+            Log.e("CartFragment", "main_scroll là null!");
+            if (isAdded()) {
+                Toast.makeText(requireContext(), "Không tìm thấy NestedScrollView", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        // Lắng nghe sự kiện cuộn
+        if (nestedScrollView != null) {
+            nestedScrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+                if (!isLoading) {
+                    View viewChild = v.getChildAt(v.getChildCount() - 1);
+                    int diff = (viewChild.getBottom() - (v.getHeight() + v.getScrollY()));
+                    if (diff <= 100) { // Ngưỡng 100px để phát hiện gần cuối
+                        loadMoreProducts(view);
+                    }
+                }
+            });
+        }
 
         // Gắn sự kiện cho nút thêm sản phẩm
         addProductButton = view.findViewById(R.id.addProductButton);
         addProductButton.setOnClickListener(v -> showAddProductDialog());
 
+        // Gọi API để lấy danh sách sản phẩm ban đầu
+        fetchProducts(view);
+
         return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Hủy tất cả các tác vụ bất đồng bộ
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null); // Hủy tất cả các tác vụ trì hoãn
+        }
+        // Hủy các Retrofit Call
+        for (Call<ProductsResponse> call : activeCalls) {
+            call.cancel();
+        }
+        activeCalls.clear();
     }
 
     private void fetchProducts(View rootView) {
         ApiService apiService = RetrofitClient.getApiService();
         Call<ProductsResponse> call = apiService.getProducts();
+        activeCalls.add(call); // Thêm vào danh sách để theo dõi
 
         call.enqueue(new Callback<ProductsResponse>() {
             @Override
             public void onResponse(Call<ProductsResponse> call, Response<ProductsResponse> response) {
+                activeCalls.remove(call); // Xóa khỏi danh sách khi hoàn thành
+                if (!isAdded()) return; // Kiểm tra Fragment có còn gắn không
 
                 if (response.isSuccessful() && response.body() != null) {
                     List<Product> products = response.body().getProducts();
                     if (products != null && !products.isEmpty()) {
-                        // Display the products on the UI
-                        showProductList(rootView, products, "");
+                        productList.clear();
+                        productList.addAll(products);
+                        offset = products.size();
+                        showProductList(rootView, productList, "");
                     } else {
                         Toast.makeText(requireContext(), "No products found", Toast.LENGTH_SHORT).show();
                     }
@@ -71,7 +128,48 @@ public class CartFragment extends Fragment {
 
             @Override
             public void onFailure(Call<ProductsResponse> call, Throwable t) {
+                activeCalls.remove(call);
+                if (!isAdded()) return;
                 Toast.makeText(requireContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void loadMoreProducts(View rootView) {
+        if (isLoading) return;
+        isLoading = true;
+
+        ApiService apiService = RetrofitClient.getApiService();
+        Call<ProductsResponse> call = apiService.loadMoreProducts(offset);
+        activeCalls.add(call);
+
+        call.enqueue(new Callback<ProductsResponse>() {
+            @Override
+            public void onResponse(Call<ProductsResponse> call, Response<ProductsResponse> response) {
+                activeCalls.remove(call);
+                isLoading = false;
+                if (!isAdded()) return;
+
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Product> newProducts = response.body().getProducts();
+                    if (newProducts != null && !newProducts.isEmpty()) {
+                        productList.addAll(newProducts);
+                        offset += newProducts.size();
+                        showProductList(rootView, productList, "");
+                    } else {
+                        Toast.makeText(requireContext(), "Không còn sản phẩm để tải", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(requireContext(), "Không thể tải thêm sản phẩm", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ProductsResponse> call, Throwable t) {
+                activeCalls.remove(call);
+                isLoading = false;
+                if (!isAdded()) return;
+                Toast.makeText(requireContext(), "Lỗi: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -79,30 +177,33 @@ public class CartFragment extends Fragment {
     private void showProductList(View rootView, List<Product> products, String predictedCategory) {
         LinearLayout contentContainer = rootView.findViewById(R.id.product_container);
 
-        // Kiểm tra null để tránh NullPointerException
         if (contentContainer == null) {
             Log.e("CartFragment", "product_container là null!");
-            Toast.makeText(requireContext(), "Không tìm thấy container để hiển thị sản phẩm", Toast.LENGTH_SHORT).show();
+            if (isAdded()) {
+                Toast.makeText(requireContext(), "Không tìm thấy container để hiển thị sản phẩm", Toast.LENGTH_SHORT).show();
+            }
             return;
         }
 
-        // Xóa các view cũ trước khi thêm mới để tránh trùng lặp
         contentContainer.removeAllViews();
 
-        // Kiểm tra danh sách sản phẩm rỗng
         if (products == null || products.isEmpty()) {
-            Toast.makeText(requireContext(), "Không có sản phẩm để hiển thị", Toast.LENGTH_SHORT).show();
+            if (isAdded()) {
+                Toast.makeText(requireContext(), "Không có sản phẩm để hiển thị", Toast.LENGTH_SHORT).show();
+            }
             return;
         }
 
         LayoutInflater inflater = LayoutInflater.from(getContext());
         String baseImageUrl = RetrofitClient.getBaseUrl() + "/static/";
+        final int delayMs = 500;
 
-        // Tạo một bản sao của danh sách để tránh ConcurrentModificationException
         List<Product> productsCopy = new ArrayList<>(products);
 
-        for (Product product : productsCopy) {
-            View productView = inflater.inflate(R.layout.product_item_manager, contentContainer, false);
+        for (int i = 0; i < productsCopy.size(); i++) {
+            final Product product = productsCopy.get(i);
+            final int index = i;
+            final View productView = inflater.inflate(R.layout.product_item_manager, contentContainer, false);
 
             ImageView imageView = productView.findViewById(R.id.headphonesImage);
             TextView nameView = productView.findViewById(R.id.headphonesName);
@@ -110,47 +211,52 @@ public class CartFragment extends Fragment {
             TextView categoryView = productView.findViewById(R.id.headphonesCategory);
             ImageView deleteButton = productView.findViewById(R.id.deleteHeadphonesButton);
 
-            // Đổ dữ liệu
             nameView.setText(product.getProductName() != null ? product.getProductName() : "Không rõ");
             priceView.setText(product.getPrice() != null ? product.getPrice() + "đ" : "Không rõ");
             categoryView.setText(product.getCategoryName() != null ? product.getCategoryName() : "Không rõ");
 
-            // Load ảnh
             String label = product.getLabel();
             String imagePath = product.getImagePath();
             if (imagePath != null && !imagePath.isEmpty() && label != null && !label.isEmpty()) {
                 String fullImageUrl = baseImageUrl + label + "/" + imagePath;
-                Glide.with(requireContext())
-                        .load(fullImageUrl)
-                        .error(R.drawable.hango_logo)
-                        .listener(new RequestListener<Drawable>() {
-                            @Override
-                            public boolean onLoadFailed(@Nullable GlideException e, @Nullable Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
-                                if (e != null) {
-                                    Log.e("GlideError", "Failed to load image: " + fullImageUrl, e);
-                                    e.logRootCauses("GlideError");
-                                }
-                                return false;
-                            }
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!isAdded()) return; // Kiểm tra Fragment có còn gắn không
+                        Glide.with(requireContext())
+                                .load(fullImageUrl)
+                                .error(R.drawable.hango_logo)
+                                .listener(new RequestListener<Drawable>() {
+                                    @Override
+                                    public boolean onLoadFailed(@Nullable GlideException e, @Nullable Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
+                                        if (e != null) {
+                                            Log.e("GlideError", "Failed to load image: " + fullImageUrl, e);
+                                            e.logRootCauses("GlideError");
+                                        }
+                                        return false;
+                                    }
 
-                            @Override
-                            public boolean onResourceReady(@NonNull Drawable resource, @NonNull Object model, Target<Drawable> target, @NonNull DataSource dataSource, boolean isFirstResource) {
-                                return false;
-                            }
-                        })
-                        .into(imageView);
+                                    @Override
+                                    public boolean onResourceReady(@NonNull Drawable resource, @NonNull Object model, Target<Drawable> target, @NonNull DataSource dataSource, boolean isFirstResource) {
+                                        return false;
+                                    }
+                                })
+                                .into(imageView);
+                    }
+                }, index * delayMs);
             } else {
                 imageView.setImageResource(R.drawable.hango_logo);
             }
 
-            // Thêm chức năng xóa
-            final int position = productsCopy.indexOf(product); // Lấy vị trí trong danh sách sao chép
+            final int position = productsCopy.indexOf(product);
             deleteButton.setOnClickListener(v -> {
                 contentContainer.removeView(productView);
-                if (position >= 0 && position < products.size()) {
-                    products.remove(position); // Xóa khỏi danh sách gốc
+                if (position >= 0 && position < productList.size()) {
+                    productList.remove(position);
                 }
-                Toast.makeText(requireContext(), "Sản phẩm đã được xóa", Toast.LENGTH_SHORT).show();
+                if (isAdded()) {
+                    Toast.makeText(requireContext(), "Sản phẩm đã được xóa", Toast.LENGTH_SHORT).show();
+                }
             });
 
             contentContainer.addView(productView);
@@ -158,6 +264,8 @@ public class CartFragment extends Fragment {
     }
 
     private void showAddProductDialog() {
+        if (!isAdded()) return;
+
         View dialogView = LayoutInflater.from(requireContext())
                 .inflate(R.layout.dialog_add_product, null);
 
@@ -194,7 +302,6 @@ public class CartFragment extends Fragment {
                 .setPositiveButton("Thêm", (d, which) -> {
                     String name = etName.getText().toString().trim();
                     String price = etPrice.getText().toString().trim();
-                    // TODO: xử lý gửi name, price và features
                     Toast.makeText(requireContext(), "Đã thêm sản phẩm!", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Hủy", (d, which) -> d.dismiss())

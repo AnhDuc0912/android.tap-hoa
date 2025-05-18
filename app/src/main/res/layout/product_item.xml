@@ -15,12 +15,13 @@
             android:paddingStart="12dp"
             android:paddingBottom="12dp"
             android:textSize="16sp"
-            android:textColor="@color/gray" />
+            android:textColor="@color/gray"
+            android:background="@color/blue" />
 
         <ImageView
             android:id="@+id/productImage"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="300dp"
             android:scaleType="centerCrop" />
 
         <TextView

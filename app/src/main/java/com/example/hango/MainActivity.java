@@ -47,6 +47,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
+
         setContentView(R.layout.activity_main);
 
         loadFragment(new DashboardFragment());
@@ -56,8 +60,13 @@ public class MainActivity extends AppCompatActivity {
             int id = item.getItemId();
             if (id == R.id.navigation_dashboard) {
                 loadFragment(new DashboardFragment());
+                Toast.makeText(this, "Trang chủ", Toast.LENGTH_SHORT).show();
+
                 return true;
-            } else if (id == R.id.navigation_cart) {
+            }
+//            Trang quản lý
+            else if (id == R.id.navigation_cart) {
+                Toast.makeText(MainActivity.this, "Trang quản lý", Toast.LENGTH_SHORT).show();
                 loadFragment(new CartFragment());
                 return true;
             }
@@ -147,12 +156,12 @@ public class MainActivity extends AppCompatActivity {
                                 bundle.putString("predictedCategory", wrapper.getPredictedCategory());
                                 bundle.putString("productList", new Gson().toJson(wrapper.getSimilarProducts()));
 
-                                CartFragment cartFragment = new CartFragment();
-                                cartFragment.setArguments(bundle);
+                                HomeFragment homeFragment = new HomeFragment();
+                                homeFragment.setArguments(bundle);
 
                                 getSupportFragmentManager()
                                         .beginTransaction()
-                                        .replace(R.id.fragment_container, cartFragment)
+                                        .replace(R.id.fragment_container, homeFragment)
                                         .addToBackStack(null)
                                         .commit();
                             } else {

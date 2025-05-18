@@ -275,6 +275,7 @@ public class CartFragment extends Fragment {
         EditText etFeature = dialogView.findViewById(R.id.etFeature);
         ImageButton btnAddFeat = dialogView.findViewById(R.id.btnAddFeature);
         LinearLayout featuresList = dialogView.findViewById(R.id.llFeaturesList);
+        ImageView productImage = dialogView.findViewById(R.id.productImage); // ✅ Lấy từ dialogView
 
         List<String> features = new ArrayList<>();
 
@@ -290,8 +291,11 @@ public class CartFragment extends Fragment {
         btnChooseImage.setOnClickListener(v -> {
             if (getActivity() instanceof MainActivity) {
                 ((MainActivity) getActivity()).openCameraWithCallback(imageBitmap -> {
-                    ImageView productImage = requireView().findViewById(R.id.productImage);
-                    productImage.setImageBitmap(imageBitmap);
+                    if (productImage != null && imageBitmap != null) {
+                        productImage.setImageBitmap(imageBitmap);
+                    } else {
+                        Log.e("AddProductDialog", "ImageView hoặc ảnh chụp bị null");
+                    }
                 });
             }
         });

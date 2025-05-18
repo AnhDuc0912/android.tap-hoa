@@ -10,5 +10,9 @@ public interface ApiService {
     @Multipart
     @POST("/api/similar-images")  // Thay bằng endpoint thực tế của bạn
     Call<ResponseBody> uploadImage(@Part MultipartBody.Part image);
+
+    @Multipart
+    @POST("/api/similar-images")
+    Call<ResponseWrapper> uploadImg(@Part MultipartBody.Part image);
 }
 

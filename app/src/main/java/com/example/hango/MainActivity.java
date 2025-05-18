@@ -14,10 +14,22 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.example.hango.api.ApiService;
+import com.example.hango.api.ResponseWrapper;
+import com.example.hango.api.RetrofitClient;
 import com.example.hango.ui.cart.CartFragment;
 import com.example.hango.ui.dashboard.DashboardFragment;
 import com.example.hango.ui.home.HomeFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.gson.Gson;
+
+import java.io.File;
+import java.io.FileOutputStream;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import retrofit2.Call;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -44,9 +56,6 @@ public class MainActivity extends AppCompatActivity {
             int id = item.getItemId();
             if (id == R.id.navigation_dashboard) {
                 loadFragment(new DashboardFragment());
-                return true;
-            } else if (id == R.id.navigation_home) {
-                loadFragment(new HomeFragment());
                 return true;
             } else if (id == R.id.navigation_cart) {
                 loadFragment(new CartFragment());
@@ -111,5 +120,61 @@ public class MainActivity extends AppCompatActivity {
     private void openCamera() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         cameraActivityLauncher.launch(intent);
+    }
+
+    public void sendImageToApi(Bitmap imageBitmap) {
+        new Thread(() -> {
+            try {
+                File imageFile = new File(getCacheDir(), "captured_image.jpg");
+                try (FileOutputStream fos = new FileOutputStream(imageFile)) {
+                    imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                }
+
+                RequestBody requestFile = RequestBody.create(imageFile, MediaType.parse("image/jpeg"));
+                MultipartBody.Part body = MultipartBody.Part.createFormData("image", imageFile.getName(), requestFile);
+
+                ApiService apiService = RetrofitClient.getApiService();
+                Call<ResponseWrapper> call = apiService.uploadImg(body);
+
+                call.enqueue(new retrofit2.Callback<ResponseWrapper>() {
+                    @Override
+                    public void onResponse(Call<ResponseWrapper> call, retrofit2.Response<ResponseWrapper> response) {
+                        runOnUiThread(() -> {
+                            if (response.isSuccessful() && response.body() != null) {
+                                ResponseWrapper wrapper = response.body();
+
+                                Bundle bundle = new Bundle();
+                                bundle.putString("predictedCategory", wrapper.getPredictedCategory());
+                                bundle.putString("productList", new Gson().toJson(wrapper.getSimilarProducts()));
+
+                                CartFragment cartFragment = new CartFragment();
+                                cartFragment.setArguments(bundle);
+
+                                getSupportFragmentManager()
+                                        .beginTransaction()
+                                        .replace(R.id.fragment_container, cartFragment)
+                                        .addToBackStack(null)
+                                        .commit();
+                            } else {
+                                Toast.makeText(MainActivity.this, "Lỗi gửi ảnh: " + response.code(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(Call<ResponseWrapper> call, Throwable t) {
+                        runOnUiThread(() ->
+                                Toast.makeText(MainActivity.this, "Lỗi: " + t.getMessage(), Toast.LENGTH_SHORT).show()
+                        );
+                    }
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() ->
+                        Toast.makeText(MainActivity.this, "Lỗi khi gửi ảnh", Toast.LENGTH_SHORT).show()
+                );
+            }
+        }).start();
     }
 }

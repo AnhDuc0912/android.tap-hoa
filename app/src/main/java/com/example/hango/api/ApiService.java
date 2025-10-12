@@ -13,13 +13,17 @@ import retrofit2.http.Part;
 import retrofit2.http.Query;
 
 public interface ApiService {
-    @Multipart
-    @POST("/api/similar-images")  // Thay bằng endpoint thực tế của bạn
-    Call<ResponseBody> uploadImage(@Part MultipartBody.Part image);
 
     @Multipart
-    @POST("/api/similar-images")
+    @POST("/search/image")
     Call<ResponseWrapper> uploadImg(@Part MultipartBody.Part image);
+
+    @Multipart
+    @POST("/search/image")
+    Call<SearchImageResponse> searchByImage(
+            @Part MultipartBody.Part file,     // tên field phải là "file"
+            @Part("k") RequestBody k           // số lượng kết quả (vd 20)
+    );
 
     @GET("/api/get-products")
     Call<ProductsResponse> getProducts();

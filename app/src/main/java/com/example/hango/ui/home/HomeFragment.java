@@ -16,10 +16,12 @@ import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
+import com.example.hango.MainActivity;
 import com.example.hango.R;
 import com.example.hango.api.ApiService;
 import com.example.hango.api.ResponseWrapper;
 import com.example.hango.api.RetrofitClient;
+import com.example.hango.api.SearchImageItem;
 import com.example.hango.products.Product;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -34,9 +36,11 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class HomeFragment extends Fragment {
-
+    private ImageView openCameraButton;
     private String predictedCategory;
     private List<Product> productList = new ArrayList<>();
+    private List<SearchImageItem> results = new ArrayList<>();
+
     private NestedScrollView nestedScrollView;
     private int offset = 0; // Theo dõi offset
     private final int PAGE_SIZE = 5; // Số lượng sản phẩm mỗi lần tải
@@ -71,12 +75,31 @@ public class HomeFragment extends Fragment {
 
         // Lấy dữ liệu ban đầu từ Bundle và hiển thị
         parseArguments();
-        if (productList != null && !productList.isEmpty()) {
-            offset = productList.size(); // Cập nhật offset ban đầu
+//        if (productList != null && !productList.isEmpty()) {
+//            offset = productList.size(); // Cập nhật offset ban đầu
+//            showProductList(rootView);
+//        } else if (isAdded()) {
+//            Toast.makeText(requireContext(), "Không có sản phẩm để hiển thị", Toast.LENGTH_SHORT).show();
+//        }
+        if (results != null && !results.isEmpty()) {
+            offset = results.size();
             showProductList(rootView);
         } else if (isAdded()) {
             Toast.makeText(requireContext(), "Không có sản phẩm để hiển thị", Toast.LENGTH_SHORT).show();
         }
+
+        openCameraButton = rootView.findViewById(R.id.openCameraButton);
+
+        openCameraButton.setOnClickListener(v -> {
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).openCameraWithCallback(bitmap -> {
+                    // Gọi MainActivity xử lý API và chuyển Fragment
+                    ((MainActivity) getActivity()).sendImageToApi(bitmap);
+                });
+            } else {
+                Toast.makeText(getContext(), "Không thể mở camera", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         return rootView;
     }
@@ -94,20 +117,32 @@ public class HomeFragment extends Fragment {
     /**
      * Tách xử lý lấy dữ liệu từ Bundle ra riêng
      */
+
     private void parseArguments() {
         Bundle args = getArguments();
         if (args != null) {
-            predictedCategory = args.getString("predictedCategory", "");
-            String productListJson = args.getString("productList", "[]");
-
-            Gson gson = new Gson();
-            Type listType = new TypeToken<List<Product>>() {}.getType();
-            productList = gson.fromJson(productListJson, listType);
+            String json = args.getString("search_results_json", "[]");
+            Type listType = new TypeToken<List<SearchImageItem>>(){}.getType();
+            results = new Gson().fromJson(json, listType);
         } else {
-            predictedCategory = "";
-            productList = Collections.emptyList();
+            results = new ArrayList<>();
         }
     }
+
+//    private void parseArguments() {
+//        Bundle args = getArguments();
+//        if (args != null) {
+//            predictedCategory = args.getString("predictedCategory", "");
+//            String productListJson = args.getString("productList", "[]");
+//
+//            Gson gson = new Gson();
+//            Type listType = new TypeToken<List<Product>>() {}.getType();
+//            productList = gson.fromJson(productListJson, listType);
+//        } else {
+//            predictedCategory = "";
+//            productList = Collections.emptyList();
+//        }
+//    }
 
     /**
      * Gọi API để tải thêm sản phẩm tương tự
@@ -154,40 +189,79 @@ public class HomeFragment extends Fragment {
     /**
      * Hiển thị danh sách sản phẩm ra giao diện
      */
+//    private void showProductList(View rootView) {
+//        LinearLayout container = rootView.findViewById(R.id.content_container);
+//        if (container == null) {
+//            Log.e("HomeFragment", "content_container là null!");
+//            if (isAdded()) {
+//                Toast.makeText(requireContext(), "Không tìm thấy container để hiển thị sản phẩm", Toast.LENGTH_SHORT).show();
+//            }
+//            return;
+//        }
+//        container.removeAllViews();
+//
+//        LayoutInflater inflater = LayoutInflater.from(requireContext());
+//        String baseImageUrl = RetrofitClient.getBaseUrl() + "/static/";
+//
+//        for (Product product : productList) {
+//            View itemView = inflater.inflate(R.layout.product_item, container, false);
+//
+//            TextView categoryView = itemView.findViewById(R.id.categoryName);
+//            TextView nameView = itemView.findViewById(R.id.productName);
+//            TextView priceView = itemView.findViewById(R.id.productPrice);
+//            TextView similarityView = itemView.findViewById(R.id.productSimilarity);
+//            ImageView imageView = itemView.findViewById(R.id.productImage);
+//
+//            categoryView.setText("Danh mục: " + getOrDefault(product.getCategoryName()));
+//            nameView.setText("Tên: " + getOrDefault(product.getProductName()));
+//            priceView.setText("Giá: " + getOrDefault(product.getPrice()) + "đ");
+//            similarityView.setText(String.format("Độ tương đồng: %.2f%%", product.getSimilarity() * 100));
+//
+//            // Tải ảnh nếu có
+//            String imagePath = product.getImagePath();
+//            if (!predictedCategory.isEmpty() && imagePath != null && !imagePath.isEmpty()) {
+//                String fullImageUrl = baseImageUrl + predictedCategory + "/" + imagePath;
+//                Glide.with(requireContext())
+//                        .load(fullImageUrl)
+//                        .error(R.drawable.hango_logo)
+//                        .into(imageView);
+//            } else {
+//                imageView.setImageResource(R.drawable.hango_logo);
+//            }
+//
+//            container.addView(itemView);
+//        }
+//    }
     private void showProductList(View rootView) {
         LinearLayout container = rootView.findViewById(R.id.content_container);
-        if (container == null) {
-            Log.e("HomeFragment", "content_container là null!");
-            if (isAdded()) {
-                Toast.makeText(requireContext(), "Không tìm thấy container để hiển thị sản phẩm", Toast.LENGTH_SHORT).show();
-            }
-            return;
-        }
+        if (container == null) { return; }
         container.removeAllViews();
 
         LayoutInflater inflater = LayoutInflater.from(requireContext());
-        String baseImageUrl = RetrofitClient.getBaseUrl() + "/static/";
+        String base = RetrofitClient.getBaseUrl(); // ví dụ: "http://10.0.2.2:5000/"
 
-        for (Product product : productList) {
+        for (SearchImageItem item : results) {
             View itemView = inflater.inflate(R.layout.product_item, container, false);
 
-            TextView categoryView = itemView.findViewById(R.id.categoryName);
-            TextView nameView = itemView.findViewById(R.id.productName);
-            TextView priceView = itemView.findViewById(R.id.productPrice);
+            TextView categoryView   = itemView.findViewById(R.id.categoryName);
+            TextView nameView       = itemView.findViewById(R.id.productName);
+            TextView priceView      = itemView.findViewById(R.id.productPrice);
             TextView similarityView = itemView.findViewById(R.id.productSimilarity);
-            ImageView imageView = itemView.findViewById(R.id.productImage);
+            ImageView imageView     = itemView.findViewById(R.id.productImage);
 
-            categoryView.setText("Danh mục: " + getOrDefault(product.getCategoryName()));
-            nameView.setText("Tên: " + getOrDefault(product.getProductName()));
-            priceView.setText("Giá: " + getOrDefault(product.getPrice()) + "đ");
-            similarityView.setText(String.format("Độ tương đồng: %.2f%%", product.getSimilarity() * 100));
+            categoryView.setText("Thương hiệu: " + getOrDefault(item.brandName));
+            nameView.setText("Tên: " + getOrDefault(item.skuName));
+            priceView.setText("Giá: Không rõ");
+            double scorePct = item.score != null ? item.score * 100.0 : 0.0;
+            similarityView.setText(String.format("Độ tương đồng: %.2f%%", scorePct));
 
-            // Tải ảnh nếu có
-            String imagePath = product.getImagePath();
-            if (!predictedCategory.isEmpty() && imagePath != null && !imagePath.isEmpty()) {
-                String fullImageUrl = baseImageUrl + predictedCategory + "/" + imagePath;
+            // —— Build URL ảnh an toàn
+            String fullUrl = buildImageUrl(base, item.imagePath);
+
+            if (fullUrl != null) {
                 Glide.with(requireContext())
-                        .load(fullImageUrl)
+                        .load(fullUrl)
+                        .placeholder(R.drawable.hango_logo)
                         .error(R.drawable.hango_logo)
                         .into(imageView);
             } else {
@@ -198,9 +272,31 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    /**
-     * Trả về giá trị hoặc "Không rõ" nếu null
-     */
+    /** Ghép URL ảnh từ base + imagePath, tự thêm 'uploads/' nếu thiếu */
+    private @Nullable String buildImageUrl(@Nullable String base, @Nullable String imagePath) {
+        if (imagePath == null) return null;
+        String p = imagePath.trim();
+        if (p.isEmpty()) return null;
+
+        // Nếu backend đã trả URL đầy đủ thì dùng luôn
+        if (p.startsWith("http://") || p.startsWith("https://")) return p;
+
+        // Chuẩn hóa base
+        if (base == null || base.trim().isEmpty()) return null;
+        String b = base.trim();
+        while (b.endsWith("/")) b = b.substring(0, b.length() - 1);
+
+        // Bỏ slash đầu của path nếu có
+        while (p.startsWith("/")) p = p.substring(1);
+
+        // Nếu path chưa có 'uploads/' hoặc 'static/uploads/', tự thêm 'uploads/'
+        if (!(p.startsWith("uploads/") || p.startsWith("static/uploads/"))) {
+            p = "uploads/" + p;
+        }
+
+        return b + "/" + p;  // ví dụ: http://10.0.2.2:5000/uploads/xxx.png
+    }
+
     private String getOrDefault(String value) {
         return (value != null && !value.trim().isEmpty()) ? value : "Không rõ";
     }

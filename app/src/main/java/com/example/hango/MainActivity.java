@@ -17,6 +17,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.example.hango.api.ApiService;
 import com.example.hango.api.ResponseWrapper;
 import com.example.hango.api.RetrofitClient;
+import com.example.hango.api.SearchImageResponse;
 import com.example.hango.ui.cart.CartFragment;
 import com.example.hango.ui.dashboard.DashboardFragment;
 import com.example.hango.ui.home.HomeFragment;
@@ -132,58 +133,63 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void sendImageToApi(Bitmap imageBitmap) {
-        new Thread(() -> {
-            try {
-                File imageFile = new File(getCacheDir(), "captured_image.jpg");
-                try (FileOutputStream fos = new FileOutputStream(imageFile)) {
-                    imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+        try {
+            // Lưu tạm bitmap thành file JPEG
+            File imageFile = new File(getCacheDir(), "captured_image.jpg");
+            try (FileOutputStream fos = new FileOutputStream(imageFile)) {
+                imageBitmap.compress(Bitmap.CompressFormat.JPEG, 95, fos);
+            }
+
+            // Build multipart: field name PHẢI là "file"
+            RequestBody fileBody = RequestBody.create(imageFile, MediaType.parse("image/jpeg"));
+            MultipartBody.Part filePart = MultipartBody.Part.createFormData("file", imageFile.getName(), fileBody);
+
+            // Tham số k (tuỳ bạn, vd 20)
+            RequestBody kPart = RequestBody.create("20", MediaType.parse("text/plain"));
+
+            ApiService apiService = RetrofitClient.getApiService();
+            Call<SearchImageResponse> call = apiService.searchByImage(filePart, kPart);
+
+            call.enqueue(new retrofit2.Callback<SearchImageResponse>() {
+                @Override
+                public void onResponse(Call<SearchImageResponse> call, retrofit2.Response<SearchImageResponse> response) {
+                    if (!response.isSuccessful() || response.body() == null) {
+                        Toast.makeText(MainActivity.this, "Lỗi gửi ảnh: " + response.code(), Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    SearchImageResponse body = response.body();
+                    if (body.error != null) {
+                        Toast.makeText(MainActivity.this, "Server error: " + body.error, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // TODO: chuyển sang màn hình hiển thị kết quả
+                    // Ví dụ: truyền JSON qua Bundle cho HomeFragment
+                    Bundle bundle = new Bundle();
+                    //bundle.putString("search_filename", body.filename);
+                    bundle.putString("search_results_json", new Gson().toJson(body.results));
+                    bundle.putInt("search_total", body.total != null ? body.total : 0);
+
+                    HomeFragment homeFragment = new HomeFragment();
+                    homeFragment.setArguments(bundle);
+
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.fragment_container, homeFragment)
+                            .addToBackStack(null)
+                            .commit();
                 }
 
-                RequestBody requestFile = RequestBody.create(imageFile, MediaType.parse("image/jpeg"));
-                MultipartBody.Part body = MultipartBody.Part.createFormData("image", imageFile.getName(), requestFile);
+                @Override
+                public void onFailure(Call<SearchImageResponse> call, Throwable t) {
+                    Toast.makeText(MainActivity.this, "Lỗi mạng: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
 
-                ApiService apiService = RetrofitClient.getApiService();
-                Call<ResponseWrapper> call = apiService.uploadImg(body);
-
-                call.enqueue(new retrofit2.Callback<ResponseWrapper>() {
-                    @Override
-                    public void onResponse(Call<ResponseWrapper> call, retrofit2.Response<ResponseWrapper> response) {
-                        runOnUiThread(() -> {
-                            if (response.isSuccessful() && response.body() != null) {
-                                ResponseWrapper wrapper = response.body();
-
-                                Bundle bundle = new Bundle();
-                                bundle.putString("predictedCategory", wrapper.getPredictedCategory());
-                                bundle.putString("productList", new Gson().toJson(wrapper.getSimilarProducts()));
-
-                                HomeFragment homeFragment = new HomeFragment();
-                                homeFragment.setArguments(bundle);
-
-                                getSupportFragmentManager()
-                                        .beginTransaction()
-                                        .replace(R.id.fragment_container, homeFragment)
-                                        .addToBackStack(null)
-                                        .commit();
-                            } else {
-                                Toast.makeText(MainActivity.this, "Lỗi gửi ảnh: " + response.code(), Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onFailure(Call<ResponseWrapper> call, Throwable t) {
-                        runOnUiThread(() ->
-                                Toast.makeText(MainActivity.this, "Lỗi: " + t.getMessage(), Toast.LENGTH_SHORT).show()
-                        );
-                    }
-                });
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                runOnUiThread(() ->
-                        Toast.makeText(MainActivity.this, "Lỗi khi gửi ảnh", Toast.LENGTH_SHORT).show()
-                );
-            }
-        }).start();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Lỗi khi gửi ảnh", Toast.LENGTH_SHORT).show();
+        }
     }
 }

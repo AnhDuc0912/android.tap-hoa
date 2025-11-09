@@ -2,7 +2,7 @@
     <string name="app_name">Hango</string>
     <string name="title_home">Trang chủ</string>
     <string name="title_dashboard">Trang chủ</string>
-    <string name="title_cart">Quản lý</string>
+    <string name="title_cart">Giỏ hàng</string>
 
     <string-array name="category_options">
         <item>Danh mục 1</item>

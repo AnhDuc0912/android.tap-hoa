@@ -2,6 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="#FFFFFF"
     android:padding="16dp">
 
     <LinearLayout
@@ -9,89 +10,110 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Product Name -->
+        <!-- 🔹 Product Name -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Tên sản phẩm"
+            android:textColor="#000000"
             android:textSize="14sp"
             android:paddingTop="8dp" />
+
         <EditText
             android:id="@+id/etProductName"
             android:layout_width="match_parent"
             android:layout_height="40dp"
+            android:layout_marginTop="4dp"
             android:background="#F1F3F4"
-            android:paddingHorizontal="8dp" />
+            android:paddingHorizontal="8dp"
+            android:textColor="#000000"
+            android:textSize="14sp" />
 
-        <!-- Price -->
+        <!-- 🔹 Price -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Giá"
+            android:textColor="#000000"
             android:textSize="14sp"
-            android:paddingTop="8dp" />
+            android:paddingTop="12dp" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="40dp"
+            android:layout_marginTop="4dp"
             android:background="#F1F3F4"
             android:orientation="horizontal"
-            android:paddingHorizontal="8dp"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="VND" />
+                android:text="VND"
+                android:textColor="#000000"
+                android:textSize="14sp" />
+
             <EditText
                 android:id="@+id/etPrice"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:inputType="numberDecimal"
                 android:background="#F1F3F4"
-                android:paddingStart="4dp" />
+                android:inputType="numberDecimal"
+                android:paddingStart="8dp"
+                android:textColor="#000000"
+                android:textSize="14sp" />
         </LinearLayout>
 
-        <!-- Product Image -->
+        <!-- 🔹 Product Image -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Ảnh đại diện"
+            android:textColor="#000000"
             android:textSize="14sp"
-            android:paddingTop="8dp" />
+            android:paddingTop="12dp" />
+
         <Button
             android:id="@+id/btnChooseImage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Chụp ảnh" />
+            android:text="Chụp ảnh"
+            android:layout_marginTop="6dp" />
 
         <ImageView
             android:id="@+id/productImage"
             android:layout_width="match_parent"
             android:layout_height="200dp"
+            android:layout_marginTop="8dp"
+            android:background="#E0E0E0"
             android:scaleType="centerCrop" />
 
-        <!-- danh mục -->
+        <!-- 🔹 Category -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Danh mục"
+            android:textColor="#000000"
             android:textSize="14sp"
-            android:paddingTop="8dp" />
+            android:paddingTop="12dp" />
 
         <Spinner
+            android:id="@+id/spinnerCategory"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/spinnerCategory"
-            android:textSize="14sp"
-            android:paddingTop="8dp"
+            android:layout_marginTop="4dp"
             android:background="@drawable/card_border"
+            android:textSize="14sp"
             android:entries="@array/category_options" />
 
-        <!-- Feature list -->
+        <!-- 🔹 Feature List -->
         <LinearLayout
             android:id="@+id/llFeaturesList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingTop="8dp" />
+            android:paddingTop="16dp" />
+
     </LinearLayout>
 </ScrollView>

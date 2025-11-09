@@ -1,53 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp">
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="6dp"
+    app:cardUseCompatPadding="true"
+    android:backgroundTint="@android:color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:background="@android:color/white"
+        android:padding="8dp">
 
+        <!-- 🔹 Độ tương đồng -->
         <TextView
             android:id="@+id/productSimilarity"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="12dp"
-            android:paddingBottom="12dp"
-            android:textSize="16sp"
-            android:textColor="@color/gray"
-            android:background="@color/blue" />
+            android:paddingHorizontal="12dp"
+            android:paddingBottom="6dp"
+            android:text="Độ tương đồng: 0.00%"
+            android:textSize="14sp"
+            android:textStyle="italic"
+            android:textColor="#5F6368" />
 
-        <ImageView
-            android:id="@+id/productImage"
+        <!-- 🖼 Ảnh sản phẩm + nút thêm -->
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:scaleType="centerCrop" />
+            android:layout_height="220dp"
+            android:layout_marginBottom="8dp">
 
+            <ImageView
+                android:id="@+id/productImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:contentDescription="@string/app_name" />
+
+            <!-- 🔘 Nút thêm sản phẩm ở góc phải -->
+            <ImageButton
+                android:id="@+id/btnAddProduct"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="10dp"
+                android:background="@drawable/bg_fab_ring"
+                android:padding="4dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_add_product"
+                android:contentDescription="Thêm sản phẩm"
+                android:elevation="6dp" />
+        </FrameLayout>
+
+        <!-- 🔹 Tên sản phẩm -->
         <TextView
             android:id="@+id/productName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="12dp"
+            android:paddingHorizontal="12dp"
+            android:paddingBottom="4dp"
+            android:text="Tên sản phẩm"
             android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="#212121"
+            android:maxLines="1"
+            android:ellipsize="end" />
 
+        <!-- 🔹 Mô tả sản phẩm -->
         <TextView
             android:id="@+id/categoryName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="12dp"
-            android:paddingBottom="12dp"
-            android:textSize="16sp"
-            android:textColor="@color/gray" />
+            android:paddingHorizontal="12dp"
+            android:paddingBottom="4dp"
+            android:text="Mô tả sản phẩm hiển thị tối đa 2 dòng để gọn gàng và không bị tràn layout."
+            android:textSize="15sp"
+            android:textColor="#757575"
+            android:maxLines="2"
+            android:ellipsize="end" />
 
+        <!-- 🔹 Giá -->
         <TextView
             android:id="@+id/productPrice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="12dp"
+            android:paddingHorizontal="12dp"
             android:paddingBottom="12dp"
-            android:textSize="16sp"
-            android:textColor="@color/gray" />
+            android:text="Giá: đang cập nhật"
+            android:textSize="15sp"
+            android:textColor="#1976D2"
+            android:textStyle="bold" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>

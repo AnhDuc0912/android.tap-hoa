@@ -4,24 +4,24 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/bg_gradient"
     tools:context=".ui.cart.CartFragment">
 
-    <!-- Status Bar (Simulated) -->
+    <!-- Status Bar (Giả lập) -->
     <LinearLayout
         android:id="@+id/status_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintTop_toTopOf="parent">
-    </LinearLayout>
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Search Bar -->
+    <!-- Thanh tìm kiếm -->
     <androidx.cardview.widget.CardView
         android:id="@+id/search_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="20dp"
         app:cardCornerRadius="24dp"
         app:cardElevation="2dp"
         app:layout_constraintTop_toBottomOf="@id/status_bar">
@@ -45,43 +45,72 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Tìm kiếm"
-                android:textColor="#5F6368"
+                android:hint="Sản phẩm đã mua..."
+                android:textColor="#202124"
+                android:textColorHint="#5F6368"
                 android:textSize="16sp"
                 android:inputType="text"
+                android:imeOptions="actionSearch"
+                android:singleLine="true"
                 android:background="@android:color/transparent" />
 
-            <ImageView
-                android:id="@+id/addProductButton"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginEnd="12dp"
-                android:onClick="addProduct"
-                android:src="@drawable/ic_add_product" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Match Cards and News Feed Container -->
+    <!-- Danh sách sản phẩm -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/main_scroll"
         android:layout_width="match_parent"
-        android:layout_marginTop="30dp"
         android:layout_height="0dp"
+        android:layout_marginTop="30dp"
         android:fillViewport="true"
+        android:scrollbars="none"
         app:layout_constraintTop_toBottomOf="@id/search_bar"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:scrollbars="none">
+        app:layout_constraintBottom_toTopOf="@id/checkout_bar">
+
         <LinearLayout
-            android:layout_width="match_parent"
             android:id="@+id/product_container"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="12dp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="8dp"
-            android:orientation="vertical">
-
-        </LinearLayout>
-
+            android:orientation="vertical" />
     </androidx.core.widget.NestedScrollView>
+
+    <!-- 🔹 Thanh thanh toán cố định dưới cùng -->
+    <LinearLayout
+        android:id="@+id/checkout_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp"
+        android:background="#FFFFFF"
+        android:elevation="8dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- Tổng tiền -->
+        <TextView
+            android:id="@+id/totalPriceText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Tổng: 0₫"
+            android:textColor="#202124"
+            android:textStyle="bold"
+            android:textSize="16sp" />
+
+        <!-- Nút thanh toán -->
+        <Button
+            android:id="@+id/btnCheckout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#2196F3"
+            android:text="Thanh toán"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="8dp"
+            app:cornerRadius="24dp" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -44,8 +44,9 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp3)
+    implementation(libs.okhttp.logging)
     implementation(libs.glide)
-
+    implementation("com.google.zxing:core:3.5.3")
     // Các dependencies khác
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
